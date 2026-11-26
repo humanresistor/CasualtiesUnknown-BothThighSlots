@@ -19,19 +19,43 @@
 
 ## 原版是什么情况
 
-- 两条腿是两个独立肢体：**ThighF = 右大腿**，**ThighB = 左大腿**（游戏语言文件里就这么写的）。
-- 腿包 legpouch：槽位 thigh，固定挂 ThighF（右大腿）。
-- 材料包 materialpouch：槽位 thighback，固定挂 ThighB（左大腿）。
-- 穿戴判定在 Body.WearWearable：
+游戏是 **2D 横版侧视图，角色默认面朝右边**。屏幕上“看起来在前还是在后”并不由坐标决定，而由**图层顺序**决定：越靠近观众的图层画在越上面。
+
+**1. 两条腿是两套独立的图层**
+角色左腿、右腿是两个独立肢体：ThighF（右大腿，**靠前、更靠近观众**，图层在上）和 ThighB（左大腿，**靠后、远离观众**，图层在下）。它们各自带 SpriteRenderer 和 sortingOrder，所以前腿会遮住后腿的一部分。
+
+**2. 装备和腿是硬绑的**
+腿包 legpouch 固定挂 ThighF（右腿），材料包 materialpouch 固定挂 ThighB（左腿）。玩家不能选边；那条腿断了，这件装备就彻底装不上。
+
+**3. 前后关系由“偏移”决定**
+穿上时物品的坐标被重置到腿的中心（位置、缩放、旋转全部归零），唯一影响观感的是：
 
 ```
-Item already = GetWearableBySlotID(item.Stats.wearSlotId);   // 遍历【所有肢体】
-if (already != null) { 弹「你已经穿着 …」; return; }          // 同一槽位 id 全身只能一件
-Limb limb = LimbByName(item.Stats.desiredWearLimb);          // 然后只挂这条「原定」腿
-if (limb.dismembered) { 弹「肢体缺失」; return; }
+物品 sortingOrder = 所在腿的 sortingOrder + ItemInfo.wearableVisualOffset
 ```
 
-结果就是：**一腿包 + 一材料包可以；两个材料包或两个腿包不行；断腿时对应的容器就彻底装不上**（不会自动去另一条腿）。
+| 物品 | 偏移 | 结果 |
+|---|---|---|
+| 腿包 | +5 | 画在自己那条腿**之上** → 更靠近观众 → **永远显示在角色靠近玩家的一侧** |
+| 材料包 | −5 | 画在自己那条腿**之下** → 更远离观众 → **永远在角色远离玩家的一侧，被身体挡掉一部分** |
+
+从后往前的图层依次是：**材料包 → 后腿 → 躯干 / 前腿 → 腿包**。这就是“腿包一定在靠近玩家方向、材料包一定在远离玩家方向”的由来。
+
+**4. 槽位唯一性是全局的**
+Body.WearWearable 用 GetWearableBySlotID(wearSlotId) 扫全身肢体查重，所以同一个槽位 id 全身只能有一件：thigh 最多一件腿包、thighback 最多一件材料包。不同槽位互不冲突，因此“一腿包 + 一材料包”可以共存，“两个材料包”不行。
+
+**5. 这就是为什么会“夹在两腿中间”**
+放开第二件同种物品后，第二个材料包只能挂到前腿 ThighF，但它的偏移仍然是 **−5**，于是被画在**前腿之后、后腿之前**的那条夹缝里。两张贴图尺寸完全一样（12×12 像素、1.5×1.5 世界单位、pivot 居中），叠在一起就像两腿之间又冒出一个包，几乎看不出它是穿在前腿上的第二件。
+
+**6. 两个材料包时，谁在上层**
+本插件换到对侧腿时会把偏移**取反**，于是：
+
+| 位置 | 偏移 | 图层 |
+|---|---|---|
+| 前腿（右腿）上的材料包 | 前腿 + 5 | **上层，最靠近观众**（盖住腿） |
+| 后腿（左腿）上的材料包 | 后腿 − 5 | **下层，最远离观众**（被腿盖住） |
+
+不取反（沿用原版固定值）时，前腿那件会被压在前腿后面，两件一起挤在夹缝里，都显得“在腿后”。两个**腿包**同理：前腿那个 +5 在上层，换到后腿的那个取反成 −5，落在下层。
 
 ## 本插件怎么改
 
@@ -142,14 +166,27 @@ PlayerCamera.TryPerformWorldActions 用 body.GetWearable(dragItem.id) 决定能�
 
 A BepInEx 5 plugin for **Casualties: Unknown 1.0.2** that lets thigh pouches (material pouch / leg pouch) be distributed freely across both thighs: **at most one per thigh, at most two in total**.
 
-### Vanilla behaviour
+### Vanilla behaviour (detailed)
 
-- The character has two separate thigh limbs: **ThighF = right thigh**, **ThighB = left thigh**.
-- Leg pouch (legpouch) uses wear slot thigh and is hard-bound to ThighF.
-- Material pouch (materialpouch) uses wear slot thighback and is hard-bound to ThighB.
-- Body.WearWearable first calls GetWearableBySlotID(wearSlotId), which scans **every** limb, so a single wear-slot id can only be worn once on the whole body; it then attaches the item to its hard-coded desiredWearLimb and refuses if that limb is dismembered.
+The game is a 2D side view and the character faces right by default. What looks "in front" is decided by layer order, not by position: the layer closest to the viewer is drawn on top.
 
-So in vanilla you can have one leg pouch plus one material pouch, but never two of the same kind, and losing the bound thigh makes that container completely unwearable.
+**Two independent legs.** The left and right thighs are separate limbs: ThighF (right thigh, the near side, drawn above) and ThighB (left thigh, the far side, drawn below). Each has its own SpriteRenderer and sortingOrder, so the near thigh partially covers the far one.
+
+**Hard-bound equipment.** The leg pouch is bound to ThighF and the material pouch to ThighB; the player cannot choose a side, and losing that thigh makes the item completely unwearable.
+
+**Layering comes from an offset.** On wear, the item's transform is reset to the limb centre (position, scale and rotation zeroed). The only thing that matters is:
+
+```
+item.sortingOrder = limb.sortingOrder + ItemInfo.wearableVisualOffset
+```
+
+The leg pouch uses +5, so it is drawn above its (near) thigh and always appears on the side facing the player; the material pouch uses −5, so it is drawn below its (far) thigh and always appears on the far side, partially hidden by the body. Back to front: material pouch → far thigh → torso / near thigh → leg pouch.
+
+**Slot uniqueness is global.** GetWearableBySlotID(wearSlotId) scans every limb, so one thigh and one thighback item at most; two material pouches are impossible in vanilla.
+
+**Why the second pouch ends up between the legs.** A second material pouch has to sit on ThighF, but it keeps its −5 offset, so it is drawn behind the near thigh and in front of the far thigh. With identical 12×12 px sprites (1.5×1.5 world units, centred pivot) it reads as a pouch caught between the legs.
+
+**Which of two material pouches is on top.** This plugin negates the offset when an item is worn on the mirrored thigh: the pouch on the near thigh becomes near-thigh + 5 (top layer, closest to the viewer, covering the thigh), while the pouch on the far thigh stays far-thigh − 5 (bottom layer, hidden behind the thigh). Without negating, the near-thigh pouch would be squeezed behind the near thigh and both would look like they sit behind the legs. Two leg pouches behave the same way.
 
 ### What this plugin does
 
