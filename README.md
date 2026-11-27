@@ -78,6 +78,12 @@ Body.WearWearable 用 GetWearableBySlotID(wearSlotId) 扫全身肢体查重，�
 | General / GroupSlots | thigh,thighback | 视为同一组“腿部挂包”的槽位，逗号分隔 |
 | General / ShowLimbInTooltip | true | 悬停描述顶部显示所在腿 |
 
+> **升级提示 / After upgrading**：BepInEx **不会覆盖已存在的配置值**（BepInEx does not overwrite existing config values）。
+> 旧 `cfg` 里保留的是你原来的设置；新版本若改了某些默认值（例如把日志默认关掉），
+> 需要手动改，或直接删掉 `cfg` 让插件按新默认值重新生成。
+> The old cfg keeps your previous values; if a new version changes a default (e.g. logging now off),
+> edit the cfg manually or delete it so the plugin regenerates it.
+
 ## 容量规则
 
 | 场景 | 结果 |
