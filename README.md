@@ -73,7 +73,7 @@ Body.WearWearable 用 GetWearableBySlotID(wearSlotId) 扫全身肢体查重，�
 | 键 | 默认 | 说明 |
 |---|---|---|
 | General / Enabled | true | 总开关 |
-| General / VerboseLog | true | 换腿、换层时在日志打印一行 |
+| General / VerboseLog | false | 换腿、换层时在日志打印一行（排查用） |
 | General / MirrorSortingOffset | true | 换侧时翻转排序偏移 |
 | General / GroupSlots | thigh,thighback | 视为同一组“腿部挂包”的槽位，逗号分隔 |
 | General / ShowLimbInTooltip | true | 悬停描述顶部显示所在腿 |
@@ -208,7 +208,7 @@ File: BepInEx/config/humanresistor.cu.boththighslots.cfg
 | Key | Default | Meaning |
 |---|---|---|
 | General / Enabled | true | Master switch |
-| General / VerboseLog | true | Log a line when an item is moved to the mirrored thigh / offset flipped |
+| General / VerboseLog | false | Log a line when an item is moved (debugging) |
 | General / MirrorSortingOffset | true | Flip the sorting offset when the item sits on the mirrored thigh |
 | General / GroupSlots | thigh,thighback | Wear slots treated as one "thigh pouch" group, comma separated |
 | General / ShowLimbInTooltip | true | Show the worn limb at the top of the item tooltip |
