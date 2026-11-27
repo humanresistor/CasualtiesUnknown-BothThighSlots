@@ -91,24 +91,28 @@ Body.WearWearable 用 GetWearableBySlotID(wearSlotId) 扫全身肢体查重，�
 
 > 插件只在“穿戴 / 脱下”动作上判定；**已经叠在一起的旧存档不会自动清理**，需要手动把多余的卸下再穿回。
 
-## 安装 / 构建
+## 安装
 
-1. 游戏根目录装 BepInEx 5.4.23.5 x64（出现 winhttp.dll 与 BepInEx 目录）
-2. 把 BothThighSlots.dll 放进 BepInEx/plugins/
-3. 从 Steam 启动游戏；更新 DLL 前先退出游戏
+1. 游戏根目录装 **BepInEx 5.4.23.5 x64**（装完能看到 `winhttp.dll` 和 `BepInEx` 文件夹）
+2. 把 `BothThighSlots.dll` 放进 `BepInEx/plugins/`
+3. 从 **Steam** 启动游戏
 
-构建（需要 .NET SDK，本机用 8.0.400 验证）：
+更新 DLL 前请先退出游戏，否则文件被占用会复制失败。
+
+## 构建（改代码才需要）
+
+需要 .NET SDK（本机用 8.0.400 验证）：
 
 ```
 dotnet build -c Release
 # 产物 bin/Release/netstandard2.1/BothThighSlots.dll
 ```
 
-目标框架必须是 **netstandard2.1**（游戏程序集是 2.1，用 2.0 会报 CS1705），引用游戏 Managed 下的 Assembly-CSharp.dll、UnityEngine.dll、UnityEngine.CoreModule.dll、UnityEngine.Physics2DModule.dll，以及 BepInEx/core 的 BepInEx.dll、0Harmony.dll。
+目标框架必须 **netstandard2.1**（游戏程序集是 2.1，用 2.0 会报 CS1705），引用游戏 `Managed` 下的
+`Assembly-CSharp.dll`、`UnityEngine.dll`、`UnityEngine.CoreModule.dll`、`UnityEngine.Physics2DModule.dll`，
+以及 `BepInEx/core` 的 `BepInEx.dll`、`0Harmony.dll`。
 
 ## 开发者问题参考（Dev notes）
-
-以下都是做这个插件时真实踩到的坑，按最后修复的形态记录，供其他开发者避雷。（比较关键的是 1、2、3、7）
 
 ### 1. 原版唯一性判定是“按槽位 id、扫全身”，不是“按肢体格数”
 
@@ -222,13 +226,15 @@ File: BepInEx/config/humanresistor.cu.boththighslots.cfg
 
 The plugin only validates the wear / unequip actions; saves that already contain stacked pouches are not cleaned up automatically — unequip the extras and wear them again.
 
-### Install / build
+### Install
 
 1. Install BepInEx 5.4.23.5 x64 into the game root (you should see winhttp.dll and a BepInEx folder).
 2. Put BothThighSlots.dll into BepInEx/plugins/.
 3. Launch the game through Steam; close the game before replacing the DLL.
 
-Build (requires the .NET SDK, verified with 8.0.400):
+### Build (only if you change the code)
+
+Requires the .NET SDK (verified with 8.0.400):
 
 ```
 dotnet build -c Release
