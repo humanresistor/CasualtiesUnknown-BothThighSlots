@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.1
+- `VerboseLog` 默认改为 false：玩家日志里不再打印换腿记录，只保留加载信息
+
 ## 1.5.0
 - 修复：原版 Body.GetWearable(itemid) 只查“原定肢体”，导致换到对侧的包拖不下来；改为全身兜底查找
 
