@@ -11,7 +11,7 @@ namespace BothThighSlots
     public class Plugin : BaseUnityPlugin
     {
         public const string Guid = "humanresistor.cu.boththighslots";
-        public const string Version = "1.5.0";
+        public const string Version = "1.5.1";
 
         internal static ManualLogSource Log;
         internal static ConfigEntry<bool> CfgEnabled;
@@ -27,7 +27,7 @@ namespace BothThighSlots
             Log = Logger;
             CfgEnabled = Config.Bind("General", "Enabled", true,
                 "允许腿部挂包（材料包/腿包）在两条腿之间自由分配，每条腿最多一件。");
-            CfgVerbose = Config.Bind("General", "VerboseLog", true, "换腿时在日志里打印一行。");
+            CfgVerbose = Config.Bind("General", "VerboseLog", false, "换腿时在日志里打印一行（排查用）。");
             CfgMirrorSorting = Config.Bind("General", "MirrorSortingOffset", true,
                 "换到另一条腿时翻转贴图排序偏移（材料包原本画在腿后，换到前腿后改为画在腿前）。");
             CfgGroupSlots = Config.Bind("General", "GroupSlots", "thigh,thighback",
